@@ -62,7 +62,10 @@ Then press `F5` to launch the host. The extension will rebuild automatically whe
 
 ## Packaging as a `.vsix`
 
+Install the VS Code extension packaging tool first, then build:
+
 ```bash
+npm install -g @vscode/vsce
 npm run package
 ```
 
