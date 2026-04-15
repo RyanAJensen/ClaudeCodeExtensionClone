@@ -1,0 +1,272 @@
+{
+  "name": "claude-code-replica",
+  "displayName": "Ryan's Claude Code (Replica)",
+  "description": "An AI coding assistant powered by Claude — replica of the Ryan's Claude Code VS Code extension",
+  "version": "1.0.0",
+  "publisher": "replica",
+  "engines": {
+    "vscode": "^1.94.0"
+  },
+  "categories": ["AI", "Chat"],
+  "keywords": ["claude", "anthropic", "ai", "coding", "assistant"],
+  "activationEvents": ["onStartupFinished", "onView:ccrSidebarView"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Ryan's Claude Code Replica",
+      "properties": {
+        "claudeCodeReplica.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Your Anthropic API key. Get one at [console.anthropic.com](https://console.anthropic.com).",
+          "order": 1
+        },
+        "claudeCodeReplica.model": {
+          "type": "string",
+          "enum": [
+            "claude-opus-4-6",
+            "claude-sonnet-4-6",
+            "claude-haiku-4-5-20251001"
+          ],
+          "enumDescriptions": [
+            "Claude Opus 4.6 — most capable",
+            "Claude Sonnet 4.6 — balanced (recommended)",
+            "Claude Haiku 4.5 — fastest"
+          ],
+          "default": "claude-sonnet-4-6",
+          "description": "Claude model to use for responses.",
+          "order": 2
+        },
+        "claudeCodeReplica.preferredLocation": {
+          "type": "string",
+          "enum": ["sidebar", "panel"],
+          "enumDescriptions": ["Open in the side bar", "Open in a new editor tab"],
+          "default": "sidebar",
+          "description": "Where Claude opens by default.",
+          "order": 3
+        },
+        "claudeCodeReplica.initialPermissionMode": {
+          "type": "string",
+          "enum": ["default", "acceptEdits", "plan"],
+          "enumDescriptions": [
+            "Ask before each file edit or terminal command",
+            "Automatically accept all file edits",
+            "Generate a plan document instead of making changes"
+          ],
+          "default": "default",
+          "description": "Permission mode for new conversations.",
+          "order": 4
+        },
+        "claudeCodeReplica.useCtrlEnterToSend": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use Ctrl/Cmd+Enter to send messages instead of Enter.",
+          "order": 5
+        },
+        "claudeCodeReplica.enableNewConversationShortcut": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Ctrl/Cmd+N to start a new conversation when Claude is focused.",
+          "order": 6
+        },
+        "claudeCodeReplica.autosave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save files before Claude reads or writes them.",
+          "order": 7
+        },
+        "claudeCodeReplica.respectGitIgnore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Respect .gitignore when searching files.",
+          "order": 8
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "claude-code-replica.sidebar.open",
+        "title": "Ryan's Claude Code: Open in Side Bar",
+        "icon": {
+          "light": "resources/claude-logo.svg",
+          "dark": "resources/claude-logo.svg"
+        }
+      },
+      {
+        "command": "claude-code-replica.editor.open",
+        "title": "Ryan's Claude Code: Open in New Tab",
+        "icon": {
+          "light": "resources/claude-logo.svg",
+          "dark": "resources/claude-logo.svg"
+        }
+      },
+      {
+        "command": "claude-code-replica.newConversation",
+        "title": "Ryan's Claude Code: New Conversation"
+      },
+      {
+        "command": "claude-code-replica.focus",
+        "title": "Ryan's Claude Code: Focus Input"
+      },
+      {
+        "command": "claude-code-replica.blur",
+        "title": "Ryan's Claude Code: Blur Input"
+      },
+      {
+        "command": "claude-code-replica.insertMention",
+        "title": "Ryan's Claude Code: Insert @-Mention Reference"
+      },
+      {
+        "command": "claude-code-replica.acceptDiff",
+        "title": "Ryan's Claude Code: Accept Proposed Changes",
+        "enablement": "claude-code-replica.viewingDiff",
+        "icon": "$(check)"
+      },
+      {
+        "command": "claude-code-replica.rejectDiff",
+        "title": "Ryan's Claude Code: Reject Proposed Changes",
+        "enablement": "claude-code-replica.viewingDiff",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "claude-code-replica.showLogs",
+        "title": "Ryan's Claude Code: Show Logs"
+      },
+      {
+        "command": "claude-code-replica.openWalkthrough",
+        "title": "Ryan's Claude Code: Open Walkthrough"
+      },
+      {
+        "command": "claude-code-replica.logout",
+        "title": "Ryan's Claude Code: Clear API Key"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "claude-code-replica.focus",
+        "key": "ctrl+escape",
+        "mac": "cmd+escape",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "claude-code-replica.blur",
+        "key": "ctrl+escape",
+        "mac": "cmd+escape",
+        "when": "!editorTextFocus"
+      },
+      {
+        "command": "claude-code-replica.editor.open",
+        "key": "ctrl+shift+escape",
+        "mac": "cmd+shift+escape"
+      },
+      {
+        "command": "claude-code-replica.insertMention",
+        "key": "alt+k",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "claude-code-replica.newConversation",
+        "key": "ctrl+n",
+        "mac": "cmd+n",
+        "when": "config.claudeCodeReplica.enableNewConversationShortcut && activeWebviewPanelId == 'claudeCodeReplicaPanel'"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ccr-sidebar",
+          "title": "Ryan's Claude Code",
+          "icon": "resources/claude-logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "ccr-sidebar": [
+        {
+          "type": "webview",
+          "id": "ccrSidebarView",
+          "name": "Ryan's Claude Code"
+        }
+      ]
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "claude-code-replica.editor.open",
+          "group": "navigation",
+          "when": "true"
+        },
+        {
+          "command": "claude-code-replica.acceptDiff",
+          "when": "claude-code-replica.viewingDiff",
+          "group": "navigation"
+        },
+        {
+          "command": "claude-code-replica.rejectDiff",
+          "when": "claude-code-replica.viewingDiff",
+          "group": "navigation"
+        }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "id": "claude-code-replica-walkthrough",
+        "title": "Get started with Ryan's Claude Code",
+        "description": "Learn how to use Ryan's Claude Code to write, edit, and understand your code.",
+        "steps": [
+          {
+            "id": "welcome",
+            "title": "Your AI coding partner",
+            "description": "Ryan's Claude Code helps you write, edit, and understand code right in VS Code.\n\nSet your Anthropic API key in settings: [Open Settings](command:workbench.action.openSettings?%5B%22claudeCodeReplica.apiKey%22%5D)",
+            "media": {
+              "image": "resources/claude-logo.svg",
+              "altText": "Ryan's Claude Code logo"
+            }
+          },
+          {
+            "id": "open-claude",
+            "title": "Open Ryan's Claude Code",
+            "description": "Click the Claude icon in the activity bar, or press **Ctrl+Escape** (Cmd+Escape on Mac).\n\n[Open Ryan's Claude Code](command:claude-code-replica.sidebar.open)",
+            "media": {
+              "image": "resources/claude-logo.svg",
+              "altText": "Open Ryan's Claude Code"
+            },
+            "completionEvents": ["onCommand:claude-code-replica.sidebar.open", "onCommand:claude-code-replica.editor.open"]
+          },
+          {
+            "id": "chat",
+            "title": "Chat with Claude",
+            "description": "Type a message and press **Enter**. Use **@** to mention files for context. Highlight code first to ask about your selection.",
+            "media": {
+              "image": "resources/claude-logo.svg",
+              "altText": "Chat with Claude"
+            }
+          },
+          {
+            "id": "sessions",
+            "title": "Past conversations",
+            "description": "Your conversations are saved automatically. Click **Past Conversations** to browse history and resume sessions. Use **+ New** to start fresh.",
+            "media": {
+              "image": "resources/claude-logo.svg",
+              "altText": "Past conversations"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "npm run build && vsce package"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.94.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}
